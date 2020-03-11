@@ -41,6 +41,7 @@ backup_orig() {
 
 restore_orig() {
 	iptables-restore -T mangle < $1
+	rm -f $1
 }
 
 init_chain() {
