@@ -1,0 +1,88 @@
+#!/bin/sh
+set -e
+
+TABLE=$(mktemp -p /tmp -u iptmon_XXXXXX)
+BACKUP_TABLE=/etc/iptmon_backup.ipt
+CHAIN_FWD="iptmon_forward"
+CHAIN_INPUT="iptmon_input"
+CHAIN_OUTPUT="iptmon_output"
+LEASE_FILE=/tmp/dhcp.leases
+
+usage() {
+  echo "$0 [init|update|remove]"
+}
+
+remove() {
+	echo "-D $CHAIN_INPUT"
+	echo "-D $CHAIN_OUTPUT"
+	echo "-D $CHAIN_FWD"
+}
+
+add_rule() {
+  echo "-A $CHAIN_FWD -s $3 -j RETURN -m comment --comment \"tx_$4\""
+  echo "-A $CHAIN_FWD -d $3 -j RETURN -m comment --comment \"rx_$4\""
+}
+
+commit() {
+	echo "COMMIT" >> $TABLE
+	iptables-restore -v < $TABLE
+}
+
+update_chain() {
+	while read -r line; do
+		add_rule $line
+	done < $1 >> $TABLE
+}
+
+backup_orig() {
+	test -f $BACKUP_TABLE || iptables-save -t mangle > $1
+}
+
+restore_orig() {
+	iptables-restore -T mangle < $1
+}
+
+init_chain() {
+ cat <<-EOF >> $TABLE
+		*mangle
+		:PREROUTING ACCEPT
+		:INPUT ACCEPT
+		:FORWARD ACCEPT
+		:OUTPUT ACCEPT
+		:POSTROUTING ACCEPT
+		:$CHAIN_FWD - [0:0]
+		:$CHAIN_INPUT - [0:0]
+		:$CHAIN_OUTPUT - [0:0]
+		-A INPUT -j $CHAIN_INPUT
+		-A FORWARD -j $CHAIN_FWD
+		-A OUTPUT -j $CHAIN_OUTPUT
+		-F $CHAIN_FWD
+EOF
+}
+
+_cleanup() {
+	rm -f $TABLE
+}
+
+test "$(id -u)" -eq 0 || { echo "must be root"; exit 1; }
+# trap _cleanup EXIT
+
+case $1 in
+	"init")
+		backup_orig $BACKUP_TABLE
+		init_chain
+		update_chain $LEASE_FILE
+		commit
+	;;
+	"update")
+		init_chain $LEASE_FILE
+		update_chain $LEASE_FILE
+		commit
+	;;
+	"remove")
+		restore_orig $BACKUP_TABLE
+	;;
+ *)
+	usage
+	;;
+esac
