@@ -1,13 +1,14 @@
 #!/bin/sh
 set -e
 
-TABLE=$(mktemp -p /tmp -u iptmon_XXXXXX)
+LEASE_FILE=/tmp/dhcp.leases
 BACKUP_TABLE=/etc/iptmon_backup.ipt
+TABLE=$(mktemp -p /tmp -u iptmon_XXXXXX)
+
 CHAIN_FW_TX="iptmon_tx"
 CHAIN_FW_RX="iptmon_rx"
 CHAIN_INPUT="iptmon_input"
 CHAIN_OUTPUT="iptmon_output"
-LEASE_FILE=/tmp/dhcp.leases
 
 usage() {
   echo "$0 [init|update|remove]"
