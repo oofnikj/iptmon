@@ -5,14 +5,14 @@
 * you are using `luci-app-statistics` to collect and process metrics
 
 
-### host
+## Installation
 Copy files from host:
 ```
 $ scp etc/collectd/conf.d/iptables.conf ${OPENWRT_HOST}:/etc/collectd/conf.d/
 $ scp usr/sbin/iptmon ${OPENWRT_HOST}:/usr/sbin/
 ```
 
-### openwrt
+### on OpenWRT
 
 Generate firewall rules:
 ```
@@ -31,3 +31,6 @@ Cron job to periodically flush and re-populate firewall rules:
 ```
 */30 * * * * /usr/sbin/iptmon update
 ```
+
+## removal
+To uninstall, run `iptmon remove`. This will restore your `mangle` table to the state it was in before you ran `iptmon init`.
