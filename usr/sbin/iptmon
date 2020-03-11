@@ -20,8 +20,8 @@ remove() {
 }
 
 add_rule() {
-  echo "-A $CHAIN_FW_TX -s $3 -j RETURN -m comment --comment \"tx_$4\""
-  echo "-A $CHAIN_FW_RX -d $3 -j RETURN -m comment --comment \"rx_$4\""
+  echo "-A $CHAIN_FW_TX -s $4 -j RETURN -m comment --comment \"tx_$4\""
+  echo "-A $CHAIN_FW_RX -d $4 -j RETURN -m comment --comment \"rx_$4\""
 }
 
 commit() {
