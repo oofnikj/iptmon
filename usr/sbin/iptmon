@@ -77,7 +77,7 @@ _cleanup() {
 }
 
 test "$(id -u)" -eq 0 || { echo "must be root"; exit 1; }
-# trap _cleanup EXIT
+trap _cleanup EXIT
 
 case $1 in
 	"init")
