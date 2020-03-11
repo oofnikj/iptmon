@@ -3,7 +3,8 @@ set -e
 
 TABLE=$(mktemp -p /tmp -u iptmon_XXXXXX)
 BACKUP_TABLE=/etc/iptmon_backup.ipt
-CHAIN_FWD="iptmon_forward"
+CHAIN_FW_TX="iptmon_tx"
+CHAIN_FW_RX="iptmon_rx"
 CHAIN_INPUT="iptmon_input"
 CHAIN_OUTPUT="iptmon_output"
 LEASE_FILE=/tmp/dhcp.leases
@@ -19,8 +20,8 @@ remove() {
 }
 
 add_rule() {
-  echo "-A $CHAIN_FWD -s $3 -j RETURN -m comment --comment \"tx_$4\""
-  echo "-A $CHAIN_FWD -d $3 -j RETURN -m comment --comment \"rx_$4\""
+  echo "-A $CHAIN_FW_TX -s $3 -j RETURN -m comment --comment \"tx_$4\""
+  echo "-A $CHAIN_FW_RX -d $3 -j RETURN -m comment --comment \"rx_$4\""
 }
 
 commit() {
@@ -50,14 +51,24 @@ init_chain() {
 		:FORWARD ACCEPT
 		:OUTPUT ACCEPT
 		:POSTROUTING ACCEPT
-		:$CHAIN_FWD - [0:0]
+		:$CHAIN_FW_TX - [0:0]
+		:$CHAIN_FW_RX - [0:0]
 		:$CHAIN_INPUT - [0:0]
 		:$CHAIN_OUTPUT - [0:0]
 		-A INPUT -j $CHAIN_INPUT
-		-A FORWARD -j $CHAIN_FWD
+		-A FORWARD -j $CHAIN_FW_TX
+		-A FORWARD -j $CHAIN_FW_RX
 		-A OUTPUT -j $CHAIN_OUTPUT
-		-F $CHAIN_FWD
-EOF
+		-F $CHAIN_FW_TX
+		-F $CHAIN_FW_RX
+	EOF
+}
+
+finalize_chain() {
+	cat <<-EOF >> $TABLE
+		-A $CHAIN_INPUT -j RETURN
+		-A $CHAIN_OUTPUT -j RETURN
+	EOF
 }
 
 _cleanup() {
@@ -72,11 +83,13 @@ case $1 in
 		backup_orig $BACKUP_TABLE
 		init_chain
 		update_chain $LEASE_FILE
+		finalize_chain
 		commit
 	;;
 	"update")
-		init_chain $LEASE_FILE
+		init_chain
 		update_chain $LEASE_FILE
+		finalize_chain
 		commit
 	;;
 	"remove")
