@@ -14,12 +14,6 @@ usage() {
   echo "$0 [init|update|remove]"
 }
 
-remove() {
-	echo "-D $CHAIN_INPUT"
-	echo "-D $CHAIN_OUTPUT"
-	echo "-D $CHAIN_FWD"
-}
-
 # dhcp.leases format, hostname in 4th column
 add_rule() {
   echo "-A $CHAIN_FW_TX -s $4 -j RETURN -m comment --comment \"tx_$4\""
