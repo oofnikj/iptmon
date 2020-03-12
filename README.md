@@ -1,11 +1,20 @@
 # iptmon: Simple iptables bandwidth monitor
 
+`iptmon` is a script that periodically reads your DHCP leases and creates `iptables` firewall rules to count transmit and recieve traffic to/from each host.
+This information can then be scraped by `collectd` using the `iptables` plugin. See `etc/collectd/conf.d/iptables.conf` for configuration example.
+
+Furthermore, `collectd` can push data to InfluxDB, which can in turn be used as a data source for Grafana dashboards.
+
+Inspired by [wrtbmon](https://github.com/pyrovski/wrtbwmon).
+
+---
+
 `iptmon` makes several assumptions:
 * a file called `/tmp/dhcp.leases` stores DHCP lease information
-* you are using `luci-app-statistics` to collect and process metrics
+* you are already using `luci-app-statistics` and `collectd` to collect and process metrics
 
 
-## Installation
+## Installation on OpenWRT
 Copy files from host:
 ```
 $ scp etc/collectd/conf.d/iptables.conf ${OPENWRT_HOST}:/etc/collectd/conf.d/
