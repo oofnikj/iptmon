@@ -1,7 +1,8 @@
 # iptmon: Simple iptables bandwidth monitor
 
-`iptmon` is a script that periodically reads your DHCP leases and creates `iptables` firewall rules to count transmit and recieve traffic to/from each host.
-This information can then be scraped by `collectd` using the `iptables` plugin. See `etc/collectd/conf.d/iptables.conf` for configuration example.
+`iptmon` is a script used to create and update `iptables` firewall rules to count transmit and recieve traffic to/from each host. It is intended to be triggered by dnsmasq using the `--dhcp-script` option, so that as new hosts are added and old leases expire, rules are updated dynamically.
+
+Packet and byte counts can then be scraped by `collectd` using the `iptables` plugin. See `etc/collectd/conf.d/iptables.conf` for configuration example.
 
 Furthermore, `collectd` can push data to InfluxDB, which can in turn be used as a data source for [Grafana dashboards](https://github.com/oofnikj/docker-openwrt/tree/master/monitoring).
 
@@ -9,9 +10,9 @@ Inspired by [wrtbmon](https://github.com/pyrovski/wrtbwmon).
 
 ---
 
-`iptmon` makes several assumptions:
-* a file called `/tmp/dhcp.leases` stores DHCP lease information
-* you are already using `luci-app-statistics` and `collectd` to collect and process metrics
+To make use of `iptmon`, you should already be using `luci-app-statistics` and `collectd` to collect and process metrics.
+
+The `iptables` module can be used to collect per-host metrics.
 
 
 ## Installation on OpenWRT
@@ -23,22 +24,21 @@ $ scp usr/sbin/iptmon ${OPENWRT_HOST}:/usr/sbin/
 
 ### on OpenWRT
 
-Generate firewall rules:
+Configure `dnsmasq` to trigger `iptmon`:
 ```
-# iptmon init
+# echo 'dhcp-script=/usr/sbin/iptmon' >> /etc/dnsmasq.conf
 ```
 
-Set include dir (should be the default but just in case):
+Add init command to firewall startup:
 ```
-# mkdir -p /etc/collectd/conf.d
+# echo '/usr/sbin/iptmon init' >> /etc/firewall.user
+```
+
+Set include dir for `collectd`:
+```
 # uci set luci_statistics.collectd.Include='/etc/collectd/conf.d'
 # uci commit
 # service luci_statistics restart
-```
-
-Cron job to periodically flush and re-populate firewall rules:
-```
-*/30 * * * * /usr/sbin/iptmon update
 ```
 
 ## removal
