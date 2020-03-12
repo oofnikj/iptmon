@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-LEASE_FILE=/tmp/dhcp.leases
 BACKUP_TABLE=/etc/iptmon_backup.ipt
 TABLE=$(mktemp -p /tmp -u iptmon_XXXXXX)
 
@@ -30,12 +29,6 @@ EOF
 commit() {
 	echo "COMMIT" >> $TABLE
 	iptables-restore -T mangle < $TABLE
-}
-
-update_chain() {
-	while read -r line; do
-		add_rule $line
-	done < $1 >> $TABLE
 }
 
 backup_orig() {
