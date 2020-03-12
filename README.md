@@ -3,7 +3,7 @@
 `iptmon` is a script that periodically reads your DHCP leases and creates `iptables` firewall rules to count transmit and recieve traffic to/from each host.
 This information can then be scraped by `collectd` using the `iptables` plugin. See `etc/collectd/conf.d/iptables.conf` for configuration example.
 
-Furthermore, `collectd` can push data to InfluxDB, which can in turn be used as a data source for Grafana dashboards.
+Furthermore, `collectd` can push data to InfluxDB, which can in turn be used as a data source for [Grafana dashboards](https://github.com/oofnikj/docker-openwrt/tree/master/monitoring).
 
 Inspired by [wrtbmon](https://github.com/pyrovski/wrtbwmon).
 
