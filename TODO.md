@@ -2,6 +2,8 @@
 
 * add IPv6
 
-* use `--dhcp-script` option of `dnsmasq` to add/remove host rules instead of using `cron`
+<s>* use `--dhcp-script` option of `dnsmasq` to add/remove host rules instead of using `cron`</s>
 
-* trigger `iptmon init` on firewall restart
+<s>* trigger `iptmon init` on firewall restart</s>
+
+* add some screenshots
