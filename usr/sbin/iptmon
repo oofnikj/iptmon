@@ -11,13 +11,20 @@ CHAIN_INPUT="iptmon_input"
 CHAIN_OUTPUT="iptmon_output"
 
 usage() {
-  echo "$0 [init|update|remove]"
-}
+	cat <<EOF
 
-# dhcp.leases format, hostname in 4th column
-add_rule() {
-  echo "-A $CHAIN_FW_TX -s $4 -j RETURN -m comment --comment \"tx_$4\""
-  echo "-A $CHAIN_FW_RX -d $4 -j RETURN -m comment --comment \"rx_$4\""
+$0 init
+	initialize iptmon chains
+
+$0 [add|old|del]
+	dnsmasq functions to add / remove entries
+
+$0 flush
+	flush all iptmon chain entries
+
+$0 remove
+	remove iptmon chains and restore original mangle table
+EOF
 }
 
 commit() {
