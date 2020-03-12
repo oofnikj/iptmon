@@ -72,6 +72,24 @@ _cleanup() {
 	rm -f $TABLE
 }
 
+dnsmasq_add() {
+	mac=$1
+	ip=$2
+	host=$3
+	iptables -t mangle -L "${CHAIN_FW_TX}" | grep -q "${host}" || \
+		iptables -t mangle -A "${CHAIN_FW_TX}" -s "${ip}" -j RETURN -m comment --comment "tx_${host:-$ip}"
+	iptables -t mangle -L "${CHAIN_FW_RX}" | grep -q "${host}" || \
+		iptables -t mangle -A "${CHAIN_FW_RX}" -d "${ip}" -j RETURN -m comment --comment "rx_${host:-$ip}"
+}
+
+dnsmasq_del() {
+	mac=$1
+	ip=$2
+	host=$3
+	iptables -t mangle -D "${CHAIN_FW_TX}" -s "${ip}" -j RETURN -m comment --comment "tx_${host:-$ip}"
+	iptables -t mangle -D "${CHAIN_FW_RX}" -d "${ip}" -j RETURN -m comment --comment "rx_${host:-$ip}"
+}
+
 test "$(id -u)" -eq 0 || { echo "must be root"; exit 1; }
 trap _cleanup EXIT
 
@@ -79,15 +97,24 @@ case $1 in
 	"init")
 		backup_orig $BACKUP_TABLE
 		init_chain
-		update_chain $LEASE_FILE
 		finalize_chain
 		commit
 	;;
-	"update")
-		init_chain
-		update_chain $LEASE_FILE
-		finalize_chain
-		commit
+	"add")
+		shift
+		dnsmasq_add "$@"
+	;;
+	"old")
+		shift
+		dnsmasq_add "$@"
+	;;
+	"del")
+		shift
+		dnsmasq_del "$@"
+	;;
+	"flush")
+		iptables -t mangle -F $CHAIN_FW_TX
+		iptables -t mangle -F $CHAIN_FW_RX
 	;;
 	"remove")
 		restore_orig $BACKUP_TABLE
