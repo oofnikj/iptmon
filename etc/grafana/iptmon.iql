@@ -1,0 +1,47 @@
+/* InfluxDB queries for reading collectd data.        /
+/  Derivative time range must equal collect interval  /
+/  for accurate accounting (10s is the default).     */
+
+-- LAN TX Rate
+SELECT non_negative_derivative(mean("value"), 10s) 
+  FROM "iptables_value" 
+  WHERE (
+    "type_instance" =~ /tx_$type_instance/  
+    AND "type" = 'ipt_bytes' 
+    AND "instance" = 'mangle-iptmon_tx'
+  ) 
+  AND $timeFilter 
+  GROUP BY time($__interval),"type_instance"
+
+-- Lan TX Total
+SELECT max("value") - min("value")
+  FROM "iptables_value" 
+  WHERE (
+    "type" = 'ipt_bytes' AND 
+    "instance" = 'mangle-iptmon_tx' AND 
+    "type_instance" =~ /tx_$type_instance/ 
+  ) 
+  AND $timeFilter 
+  GROUP BY "type_instance"
+
+-- LAN RX Rate
+SELECT non_negative_derivative(mean("value"), 10s) 
+  FROM "iptables_value" 
+  WHERE (
+    "type_instance" =~ /rx_$type_instance/ AND
+    "type" = 'ipt_bytes' AND
+    "instance" = 'mangle-iptmon_rx'
+  ) 
+  AND $timeFilter 
+  GROUP BY time($__interval),"type_instance"
+
+-- Lan RX Total
+SELECT max("value") - min("value")
+  FROM "iptables_value" 
+  WHERE (
+    "type" = 'ipt_bytes' AND 
+    "instance" = 'mangle-iptmon_rx' AND 
+    "type_instance" =~ /rx_$type_instance/ 
+  ) 
+  AND $timeFilter 
+  GROUP BY "type_instance"
