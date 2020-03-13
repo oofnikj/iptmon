@@ -1,5 +1,7 @@
 # iptmon: Simple iptables bandwidth monitor
 
+![graph](./graph.png)
+
 `iptmon` is a script used to create and update `iptables` firewall rules to count transmit and recieve traffic to/from each host. It is intended to be triggered by dnsmasq using the `--dhcp-script` option, so that as new hosts are added and old leases expire, rules are updated dynamically.
 
 Packet and byte counts can then be scraped by `collectd` using the `iptables` plugin. See `etc/collectd/conf.d/iptables.conf` for configuration example.

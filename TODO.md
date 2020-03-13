@@ -6,4 +6,4 @@
 
 <s>* trigger `iptmon init` on firewall restart</s>
 
-* add some screenshots
+<s>* add some screenshots</s>
