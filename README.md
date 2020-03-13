@@ -18,13 +18,15 @@ The `iptables` module can be used to collect per-host metrics.
 
 
 ## Installation on OpenWRT
-Copy files from host:
+
+### On host
+Copy files:
 ```
 $ scp etc/collectd/conf.d/iptables.conf ${OPENWRT_HOST}:/etc/collectd/conf.d/
 $ scp usr/sbin/iptmon ${OPENWRT_HOST}:/usr/sbin/
 ```
 
-### on OpenWRT
+### On router
 
 Configure `dnsmasq` to trigger `iptmon`:
 ```
@@ -44,4 +46,4 @@ Set include dir for `collectd`:
 ```
 
 ## removal
-To uninstall, run `iptmon remove`. This will restore your `mangle` table to the state it was in before you ran `iptmon init`.
+To uninstall, run `iptmon remove`. This will restore your `mangle` table to the state it was in before you ran `iptmon init`. Then remove the configuration added above, and delete the files.
