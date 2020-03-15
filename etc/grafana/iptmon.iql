@@ -1,11 +1,9 @@
 /* InfluxDB queries for reading collectd data.        /
-/  Derivative time range must equal collect interval  /
-/  for accurate accounting (10s is the default).      /
-/  Replace "iptables_value" with "ip6tables_value"
+/  Replace "iptables_value" with "ip6tables_value"    /
 /  for IPv6.                                         */
 
 -- LAN TX Rate
-SELECT non_negative_derivative(mean("value"), 10s) 
+SELECT non_negative_derivative(mean("value"), 1s) 
   FROM "iptables_value" 
   WHERE (
     "type_instance" =~ /tx_$type_instance/  
@@ -27,7 +25,7 @@ SELECT max("value") - min("value")
   GROUP BY "type_instance"
 
 -- LAN RX Rate
-SELECT non_negative_derivative(mean("value"), 10s) 
+SELECT non_negative_derivative(mean("value"), 1s) 
   FROM "iptables_value" 
   WHERE (
     "type_instance" =~ /rx_$type_instance/ AND
