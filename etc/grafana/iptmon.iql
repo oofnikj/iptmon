@@ -1,6 +1,8 @@
 /* InfluxDB queries for reading collectd data.        /
 /  Derivative time range must equal collect interval  /
-/  for accurate accounting (10s is the default).     */
+/  for accurate accounting (10s is the default).      /
+/  Replace "iptables_value" with "ip6tables_value"
+/  for IPv6.                                         */
 
 -- LAN TX Rate
 SELECT non_negative_derivative(mean("value"), 10s) 
