@@ -33,6 +33,11 @@ Configure `dnsmasq` to trigger `iptmon`:
 # echo 'dhcp-script=/usr/sbin/iptmon' >> /etc/dnsmasq.conf
 ```
 
+For IPv6, we use the ARP / NDP callback functions of dnsmasq, which is disabled by default. To enable it:
+```
+# echo 'script-arp' >> /etc/dnsmasq.conf
+```
+
 Add init command to firewall startup:
 ```
 # echo '/usr/sbin/iptmon init' >> /etc/firewall.user
