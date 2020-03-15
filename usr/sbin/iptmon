@@ -1,13 +1,18 @@
 #!/bin/sh
-set -e
+# set -x
 
 BACKUP_TABLE=/etc/iptmon_backup.ipt
+BACKUP_TABLE_6=/etc/iptmon_backup6.ipt
 TABLE=$(mktemp -p /tmp -u iptmon_XXXXXX)
+
+LEASE_FILE=$(uci get dhcp.@dnsmasq[0].leasefile)
 
 CHAIN_FW_TX="iptmon_tx"
 CHAIN_FW_RX="iptmon_rx"
 CHAIN_INPUT="iptmon_input"
 CHAIN_OUTPUT="iptmon_output"
+
+IPTABLES="/usr/sbin/iptables"
 
 usage() {
 	cat <<EOF
@@ -29,15 +34,18 @@ EOF
 commit() {
 	echo "COMMIT" >> $TABLE
 	iptables-restore -T mangle < $TABLE
+	ip6tables-restore -T mangle < $TABLE
 }
 
 backup_orig() {
-	test -f $BACKUP_TABLE || iptables-save -t mangle > $1
+	test -f $BACKUP_TABLE || iptables-save -t mangle > $BACKUP_TABLE
+	test -f $BACKUP_TABLE_6 || ip6tables-save -t mangle > $BACKUP_TABLE_6
 }
 
 restore_orig() {
-	iptables-restore -T mangle < $1
-	rm -f $1
+	iptables-restore -T mangle < $BACKUP_TABLE
+	ip6tables-restore -T mangle < $BACKUP_TABLE_6
+	rm -f $BACKUP_TABLE $BACKUP_TABLE_6
 }
 
 init_chain() {
@@ -72,22 +80,61 @@ _cleanup() {
 	rm -f $TABLE
 }
 
+test_family() {
+	if { printf "%s" $1 | grep -q ":"; } ; then
+	 IPTABLES="/usr/sbin/ip6tables"
+	 FAMILY=6
+	fi
+}
+
 dnsmasq_add() {
 	mac=$1
 	ip=$2
-	host=$3
-	iptables -t mangle -L "${CHAIN_FW_TX}" | grep -q "${host}" || \
-		iptables -t mangle -A "${CHAIN_FW_TX}" -s "${ip}" -j RETURN -m comment --comment "tx_${host:-$ip}"
-	iptables -t mangle -L "${CHAIN_FW_RX}" | grep -q "${host}" || \
-		iptables -t mangle -A "${CHAIN_FW_RX}" -d "${ip}" -j RETURN -m comment --comment "rx_${host:-$ip}"
+	host=${3:-ip}
+	test_family $ip
+	# make sure we don't add a rule with the same comment
+	$IPTABLES -t mangle -nL "${CHAIN_FW_TX}" | grep -q "${host}" && exit 0
+	$IPTABLES -t mangle -A "${CHAIN_FW_TX}" -d "${ip}" -j RETURN -m comment --comment "tx_${host}"
+
+	$IPTABLES -t mangle -nL "${CHAIN_FW_RX}" | grep -q "${host}" && exit 0
+	$IPTABLES -t mangle -A "${CHAIN_FW_RX}" -s "${ip}" -j RETURN -m comment --comment "rx_${host}"
+
+	printf "added iptmon entry for %s %s" "${ip}" "${host}"
+}
+
+dnsmasq_arp_add() {
+	mac=$1
+	ip=$2
+	# ignore link-local addresses (hacky)
+	test "${ip:0:4}" == "fe80" && exit 0
+	# ignore ULA address (hacky)
+	ula_prefix="$(uci get network.globals.ula_prefix 2>/dev/null)"
+	test "${ip:0:4}" == "${ula_prefix:0:4}" && exit 0
+
+	host=$( grep $mac $LEASE_FILE | awk '{print $4}' )
+	test "${host}x" == 'x' || dnsmasq_add $mac $ip $host
 }
 
 dnsmasq_del() {
 	mac=$1
 	ip=$2
-	host=$3
-	iptables -t mangle -D "${CHAIN_FW_TX}" -s "${ip}" -j RETURN -m comment --comment "tx_${host:-$ip}"
-	iptables -t mangle -D "${CHAIN_FW_RX}" -d "${ip}" -j RETURN -m comment --comment "rx_${host:-$ip}"
+	host=${3:-ip}
+	test_family $ip
+
+	$IPTABLES -t mangle -nL "${CHAIN_FW_TX}" | grep -q "${ip}" && exit 0
+	$IPTABLES -t mangle -D "${CHAIN_FW_TX}" -d "${ip}" -j RETURN -m comment --comment "tx_${host}"
+
+	$IPTABLES -t mangle -nL "${CHAIN_FW_TX}" | grep -q "${ip}" && exit 0
+	$IPTABLES -t mangle -D "${CHAIN_FW_RX}" -s "${ip}" -j RETURN -m comment --comment "rx_${host}"
+
+	printf "deleted iptmon entry for %s %s" "${ip}" "${host}"
+}
+
+dnsmasq_arp_del() {
+	mac=$1
+	ip=$2
+	host=$( grep $mac $LEASE_FILE | awk '{print $4}' )
+	dnsmasq_del $mac $ip $host
 }
 
 test "$(id -u)" -eq 0 || { echo "must be root"; exit 1; }
@@ -95,7 +142,7 @@ trap _cleanup EXIT
 
 case $1 in
 	"init")
-		backup_orig $BACKUP_TABLE
+		backup_orig
 		init_chain
 		finalize_chain
 		commit
@@ -103,6 +150,10 @@ case $1 in
 	"add")
 		shift
 		dnsmasq_add "$@"
+	;;
+	"arp-add")
+		shift
+		dnsmasq_arp_add "$@"
 	;;
 	"old")
 		shift
@@ -112,12 +163,19 @@ case $1 in
 		shift
 		dnsmasq_del "$@"
 	;;
+	"arp-del")
+		shift
+		dnsmasq_arp_del "$@"
+	;;
 	"flush")
-		iptables -t mangle -F $CHAIN_FW_TX
-		iptables -t mangle -F $CHAIN_FW_RX
+		for chain in $CHAIN_FW_TX $CHAIN_FW_RX; do
+			for cmd in iptables ip6tables; do
+				$cmd -t mangle -F $chain
+			done
+		done
 	;;
 	"remove")
-		restore_orig $BACKUP_TABLE
+		restore_orig
 	;;
  *)
 	usage
