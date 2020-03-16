@@ -97,13 +97,22 @@ dnsmasq_add() {
 	# Needed particularly for IPv6 as clients decide to use SLAAC addresses instead of
 	# DHCP-assigned, updating the neighbor table as addresses rotate.
 	for chain in $CHAIN_FW_TX $CHAIN_FW_RX; do
+		case $chain in
+		$CHAIN_FW_TX)
+			SRC_DST='-d'
+			PREFIX='tx'
+		;;
+		$CHAIN_FW_RX)
+			SRC_DST='-s'
+			PREFIX='rx'
+		esac
 
 		EXISTING=$($IPTABLES -t mangle -nL $chain --line-numbers | grep $host | awk '{print $1}' ) 
 		if [[ ${EXISTING}x != 'x' ]] ; then # i.e. if $EXISTING is anything other than null
 			printf 'removing existing rule for %s\n' $host
 			$IPTABLES -t mangle -D $chain $EXISTING
 		fi
-		$IPTABLES -t mangle -A $chain -d $ip -j RETURN -m comment --comment "tx_${host}"
+		$IPTABLES -t mangle -A $chain $SRC_DST $ip -j RETURN -m comment --comment "${PREFIX}_${host}"
 	done
 
 	printf "added iptmon entry for %s %s" "${ip}" "${host}"
