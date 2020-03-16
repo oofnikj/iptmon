@@ -105,6 +105,7 @@ dnsmasq_add() {
 		$CHAIN_FW_RX)
 			SRC_DST='-s'
 			PREFIX='rx'
+		;;
 		esac
 
 		EXISTING=$($IPTABLES -t mangle -nL $chain --line-numbers | grep $host | awk '{print $1}' ) 
