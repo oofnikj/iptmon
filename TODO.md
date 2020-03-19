@@ -1,1 +1,1 @@
-* add IPv6 (experimental)
+* build `ipk` and tag a release

@@ -14,6 +14,8 @@ Inspired by [wrtbwmon](https://github.com/pyrovski/wrtbwmon).
 
 To make use of `iptmon`, you should already be using `luci-app-statistics` and `collectd` to collect and process metrics.
 
+A [patch](files/usr/lib/lua/luci/statistics/rrdtool/definitions/ip6tables.lua) is included for `luci_statistics` to enable IPv6 firewall time series. ([PR](https://github.com/openwrt/luci/pull/3763))
+
 The `iptables` module can be used to collect per-host metrics.
 
 
@@ -22,16 +24,21 @@ The `iptables` module can be used to collect per-host metrics.
 ### On host
 Copy files:
 ```
-$ scp -r files/ ${OPENWRT_HOST}:/
+$ cd files/ && scp -r . ${OPENWRT_HOST}:/
 ```
 
 ### On router
 
-Configure `dnsmasq` to load extra config files from a persistent directory (default is `/tmp/dnsmasq.d`):
+Configure `dnsmasq` to use a custom DHCP script file and load extra config files from a persistent directory (default is `/tmp/dnsmasq.d`). 
+
+We need to do this because by default `--script-arp` is not enabled. 
+
+This will hopefully be [fixed](https://github.com/openwrt/openwrt/pull/2842) but in the mean time:
 ```
-uci set dhcp.@dnsmasq[0].confdir=/etc/dnsmasq.d/
-uci commit
-/etc/init.d/dnsmasq restart
+# uci set dhcp.@dnsmasq[0].dhcpscript=/usr/sbin/iptmon
+# uci set dhcp.@dnsmasq[0].confdir=/etc/dnsmasq.d/
+# uci commit
+# /etc/init.d/dnsmasq restart
 ```
 
 Add init command to firewall startup:
