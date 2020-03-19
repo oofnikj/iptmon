@@ -8,7 +8,7 @@ Packet and byte counts can then be scraped by `collectd` using the `iptables` pl
 
 Furthermore, `collectd` can push data to InfluxDB, which can in turn be used as a data source for [Grafana dashboards](https://github.com/oofnikj/docker-openwrt/tree/master/monitoring).
 
-Inspired by [wrtbmon](https://github.com/pyrovski/wrtbwmon).
+Inspired by [wrtbwmon](https://github.com/pyrovski/wrtbwmon).
 
 ---
 
