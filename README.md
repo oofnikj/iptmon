@@ -22,20 +22,16 @@ The `iptables` module can be used to collect per-host metrics.
 ### On host
 Copy files:
 ```
-$ scp etc/collectd/conf.d/iptables.conf ${OPENWRT_HOST}:/etc/collectd/conf.d/
-$ scp usr/sbin/iptmon ${OPENWRT_HOST}:/usr/sbin/
+$ scp -r files/ ${OPENWRT_HOST}:/
 ```
 
 ### On router
 
-Configure `dnsmasq` to trigger `iptmon`:
+Configure `dnsmasq` to load extra config files from a persistent directory (default is `/tmp/dnsmasq.d`):
 ```
-# echo 'dhcp-script=/usr/sbin/iptmon' >> /etc/dnsmasq.conf
-```
-
-For IPv6, we use the ARP / NDP callback functions of dnsmasq, which is disabled by default. To enable it:
-```
-# echo 'script-arp' >> /etc/dnsmasq.conf
+uci set dhcp.@dnsmasq[0].confdir=/etc/dnsmasq.d/
+uci commit
+/etc/init.d/dnsmasq restart
 ```
 
 Add init command to firewall startup:
