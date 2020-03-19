@@ -90,7 +90,7 @@ test_family() {
 dnsmasq_add() {
 	mac=$1
 	ip=$2
-	host=${3:-ip}
+	host=${3:-$ip}
 	test_family $ip
 
 	# If the rule exists, replace it, making sure we have the most up-to-date address.
@@ -135,7 +135,7 @@ dnsmasq_arp_add() {
 dnsmasq_del() {
 	mac=$1
 	ip=$2
-	host=${3:-ip}
+	host=${3:-$ip}
 	test_family $ip
 
 	$IPTABLES -t mangle -nL "${CHAIN_FW_TX}" | grep -q "${ip}" && exit 0
