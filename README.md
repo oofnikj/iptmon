@@ -16,42 +16,15 @@ To make use of `iptmon`, you should already be using `luci-app-statistics` and `
 
 A [patch](files/usr/lib/lua/luci/statistics/rrdtool/definitions/ip6tables.lua) is included for `luci_statistics` to enable IPv6 firewall time series. ([PR](https://github.com/openwrt/luci/pull/3763))
 
-The `iptables` module can be used to collect per-host metrics.
-
+The `iptables` module is used to collect per-host metrics.
 
 ## Installation on OpenWRT
 
-### On host
-Copy files:
-```
-$ cd files/ && scp -r . ${OPENWRT_HOST}:/
-```
+Head over to the [releases](https://github.com/oofnikj/iptmon/releases) page to downloaded the latest `.ipk`.
 
-### On router
+`iptmon` is a shell script, so it should work on all architectures.
 
-Configure `dnsmasq` to use a custom DHCP script file and load extra config files from a persistent directory (default is `/tmp/dnsmasq.d`). 
+After downloading, install with `opkg install ./iptmon_$VERSION_all.ipk`.
 
-We need to do this because by default `--script-arp` is not enabled. 
-
-This will hopefully be [fixed](https://github.com/openwrt/openwrt/pull/2842) but in the mean time:
-```
-# uci set dhcp.@dnsmasq[0].dhcpscript=/usr/sbin/iptmon
-# uci set dhcp.@dnsmasq[0].confdir=/etc/dnsmasq.d/
-# uci commit
-# /etc/init.d/dnsmasq restart
-```
-
-Add init command to firewall startup:
-```
-# echo '/usr/sbin/iptmon init' >> /etc/firewall.user
-```
-
-Set include dir for `collectd`:
-```
-# uci set luci_statistics.collectd.Include='/etc/collectd/conf.d'
-# uci commit
-# service luci_statistics restart
-```
-
-## removal
-To uninstall, run `iptmon remove`. This will restore your `mangle` table to the state it was in before you ran `iptmon init`. Then remove the configuration added above, and delete the files.
+## Removal
+To uninstall, run `opkg remove iptmon`.
