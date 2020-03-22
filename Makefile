@@ -67,7 +67,7 @@ endef
 
 define Package/iptmon/postrm
 	#!/bin/sh
-	uci set dhcp.@dnamsasq[0].dhcpscript=''
+	uci set dhcp.@dnsmasq[0].dhcpscript=''
 	uci commit
 	/etc/init.d/dnsmasq restart
 	sed -i 's@/usr/sbin/iptmon init@@g' /etc/firewall.user
