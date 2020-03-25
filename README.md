@@ -18,6 +18,9 @@ A [patch](files/usr/lib/lua/luci/statistics/rrdtool/definitions/ip6tables.lua) i
 
 The `iptables` module is used to collect per-host metrics.
 
+
+**Note** that if you have software offloading enabled `iptmon` **will not** be able to track bandwidth usage properly.
+
 ## Installation on OpenWRT
 
 Head over to the [releases](https://github.com/oofnikj/iptmon/releases) page to downloaded the latest `.ipk`.
