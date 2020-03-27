@@ -1,14 +1,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iptmon
-PKG_VERSION:=0.0.2
+PKG_VERSION:=0.0.3
 PKG_RELEASE:=1
 PKG_MAINTAINER:=Jordan Sokolic <oofnik@gmail.com>
 
 PKG_SOURCE_PROTO=git
 PKG_SOURCE_URL:=https://github.com/oofnikj/iptmon
-PKG_SOURCE_DATE:=2020-03-22
-PKG_SOURCE_VERSION:=v0.0.2
+PKG_SOURCE_DATE:=2020-03-27
+PKG_SOURCE_VERSION:=v0.0.3
 
 
 include $(INCLUDE_DIR)/package.mk
@@ -44,8 +44,6 @@ define Package/iptmon/install
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/files/etc/collectd/conf.d/iptables.conf $(1)/etc/collectd/conf.d/iptables.conf
 	$(INSTALL_DIR) $(1)/etc/dnsmasq.d
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/files/etc/dnsmasq.d/iptmon.conf $(1)/etc/dnsmasq.d/iptmon.conf
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/statistics/rrdtool/definitions
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/usr/lib/lua/luci/statistics/rrdtool/definitions/ip6tables.lua $(1)/usr/lib/lua/luci/statistics/rrdtool/definitions/ip6tables.lua
 endef
 
 define Package/iptmon/postinst
