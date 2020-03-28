@@ -50,27 +50,34 @@ _set_network() {
 
 _install_iptmon() {
 	opkg update
-	opkg install /root/iptmon/build/packages/x86_64/iptmon/iptmon*.ipk
+	opkg install dnsmasq \
+		luci-app-statistics \
+		collectd-mod-iptables \
+		/root/iptmon/build/packages/x86_64/iptmon/iptmon*.ipk
 }
 
 launch_busybox() {
-	docker run --rm -it \
+	docker run --rm -it -d \
 	--network iptmon-net \
+	--name busybox \
 	busybox sh -c "
 		udhcpc -x hostname:abcdef
 		udhcpc6
+		ping $IP6_ADDR
 	"
+}
+
+restart_dnsmasq() {
+	docker exec -it $OPENWRT sh -c '
+		/etc/init.d/dnsmasq restart'
 }
 
 check_iptables() {
 	docker exec -it $OPENWRT sh -c '
-		kill -HUP $(pgrep dnsmasq | head -n1)
-		sleep 1
 		iptables -t mangle -nvL iptmon_rx
 		iptables -t mangle -nvL iptmon_tx
 		ip6tables -t mangle -nvL iptmon_rx
 		ip6tables -t mangle -nvL iptmon_tx
-		logread -l1000 -e iptmon
 	'
 }
 
@@ -83,7 +90,7 @@ main() {
 }
 
 cleanup() {
-	docker kill test_iptmon
+	docker kill test_iptmon busybox
 	docker network rm iptmon-net
 }
 
@@ -92,6 +99,9 @@ run)
 	run_openwrt
 	main
 	launch_busybox
+	sleep 5
+	restart_dnsmasq
+	sleep 5
 	check_iptables
 ;;
 cleanup)

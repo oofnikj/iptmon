@@ -1,14 +1,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iptmon
-PKG_VERSION:=0.0.3
+PKG_VERSION:=0.0.4
 PKG_RELEASE:=1
 PKG_MAINTAINER:=Jordan Sokolic <oofnik@gmail.com>
 
 PKG_SOURCE_PROTO=git
 PKG_SOURCE_URL:=https://github.com/oofnikj/iptmon
-PKG_SOURCE_DATE:=2020-03-27
-PKG_SOURCE_VERSION:=v0.0.3
+PKG_SOURCE_DATE:=2020-03-28
+PKG_SOURCE_VERSION:=v0.0.4
 
 
 include $(INCLUDE_DIR)/package.mk
@@ -31,7 +31,6 @@ endef
 
 define Package/iptmon/conffiles
 	/etc/collectd/conf.d/iptables.conf
-	/etc/dnsmasq.d/iptmon.conf
 endef
 
 define Build/Compile
@@ -42,15 +41,12 @@ define Package/iptmon/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/usr/sbin/iptmon $(1)/usr/sbin/iptmon
 	$(INSTALL_DIR) $(1)/etc/collectd/conf.d
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/files/etc/collectd/conf.d/iptables.conf $(1)/etc/collectd/conf.d/iptables.conf
-	$(INSTALL_DIR) $(1)/etc/dnsmasq.d
-	$(INSTALL_CONF) $(PKG_BUILD_DIR)/files/etc/dnsmasq.d/iptmon.conf $(1)/etc/dnsmasq.d/iptmon.conf
 endef
 
 define Package/iptmon/postinst
 	#!/bin/sh
 	## dnsmasq configuration
 	uci set dhcp.@dnsmasq[0].dhcpscript=/usr/sbin/iptmon
-	uci set dhcp.@dnsmasq[0].confdir=/etc/dnsmasq.d/
 	uci commit
 	/etc/init.d/dnsmasq restart
   ## firewall configuration
