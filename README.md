@@ -12,12 +12,16 @@ Inspired by [wrtbwmon](https://github.com/pyrovski/wrtbwmon).
 
 ---
 
+## Dependencies
+
 To make use of `iptmon`, you should already be using `luci-app-statistics` and `collectd` to collect and process metrics.
 
-The `iptables` module is used to collect per-host metrics.
+The `iptables` module of `collectd` is used to collect per-host metrics.
+
+`iptmon` depends on `dnsmasq` version >=2.80-16, which merged a [PR](https://github.com/openwrt/openwrt/pull/2842) to enable `script-arp` so make sure your `dnsmasq` package is up-to-date.
+
 
 If you are using `luci-app-statistics` prior to git commit [`4778aa6`](https://github.com/openwrt/luci/commit/4778aa62af311fc06ac9f2d9ee76eb814ec22a71) you will need to upgrade as this commit merged a [PR](https://github.com/openwrt/luci/pull/3763) to fix the ip6tables firewall statistics view in LuCI.
-
 
 
 **Note** that if you have software offloading enabled `iptmon` **will not** be able to track bandwidth usage properly.
