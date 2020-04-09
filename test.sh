@@ -10,7 +10,7 @@ set -x
 # 4. check for presence of iptmon rules          #
 ##                                              ##
 
-TAG=x86-64-19.07.1
+TAG=x86-64-19.07.2
 IP4_ADDR=172.22.0.22
 IP4_GW=172.22.0.1
 IP4_CIDR=172.22.0.0/24
