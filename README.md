@@ -34,5 +34,14 @@ Head over to the [releases](https://github.com/oofnikj/iptmon/releases) page to 
 
 After downloading, install with `opkg install ./iptmon_$VERSION_all.ipk`.
 
+## Notes
+
+Sometimes hosts will connect with multiple NICs and provide the same hostname to dnsmasq, resulting in duplicate entries. These duplicates can accumulate over time and need to be cleaned up.
+
+You can create a cron job to flush and repopulate the `iptmon` tables, something like:
+```
+55 */4 * * * /usr/sbin/iptmon flush && /etc/init.d/dnsmasq reload
+```
+
 ## Removal
 To uninstall, run `opkg remove iptmon`.
