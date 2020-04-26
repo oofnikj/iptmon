@@ -108,11 +108,14 @@ dnsmasq_add() {
 			PREFIX='rx'
 		;;
 		esac
-
-		EXISTING=$($IPTABLES -t mangle -nL $chain --line-numbers | grep $host | awk '{print $1}' ) 
-		if [[ ${EXISTING}x != 'x' ]] ; then # i.e. if $EXISTING is anything other than null
-			printf 'removing existing rule for %s\n' $host
-			$IPTABLES -t mangle -D $chain $EXISTING
+		# check if the rule has already been added by hostname or by ip
+		# and delete the associated rule(s)
+		EXISTING=$(${IPTABLES}-save -t mangle | grep "iptmon_${PREFIX}" | grep -e "${host}" -e "${ip}" | sed 's/-A/-D/') 
+		if [[ -n "${EXISTING}" ]] ; then
+			printf 'removing existing IPv%d %s rule for %s\n' $FAMILY $PREFIX "${host}"
+			OLD_IFS=${IFS}
+			IFS=$'\n'; for rule in $EXISTING; do eval "$IPTABLES -t mangle $rule"; done
+			IFS=$OLD_IFS
 		fi
 		$IPTABLES -t mangle -A $chain $SRC_DST $ip -j RETURN -m comment --comment "${PREFIX}_${host}"
 	done
