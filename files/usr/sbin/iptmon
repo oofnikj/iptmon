@@ -82,8 +82,8 @@ _cleanup() {
 
 test_family() {
 	if { printf "%s" $1 | grep -q ":"; } ; then
-	 IPTABLES="/usr/sbin/ip6tables"
-	 FAMILY=6
+		IPTABLES="/usr/sbin/ip6tables"
+		FAMILY=6
 	fi
 }
 
