@@ -20,7 +20,7 @@ usage() {
 $0 init
 	initialize iptmon chains
 
-$0 [add|old|del]
+$0 [ add | old | del | arp-add | arp-old | arp-del ]
 	dnsmasq functions to add / remove entries
 
 $0 flush
@@ -173,6 +173,10 @@ case $1 in
 		dnsmasq_arp_add "$@"
 	;;
 	"old")
+		shift
+		dnsmasq_add "$@"
+	;;
+	"arp-old")
 		shift
 		dnsmasq_add "$@"
 	;;
