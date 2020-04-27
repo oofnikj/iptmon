@@ -142,13 +142,23 @@ dnsmasq_del() {
 	host=${3:-$ip}
 	test_family $ip
 
-	$IPTABLES -t mangle -nL "${CHAIN_FW_TX}" | grep -q "${ip}" && exit 0
-	$IPTABLES -t mangle -D "${CHAIN_FW_TX}" -d "${ip}" -j RETURN -m comment --comment "tx_${host}"
+	for chain in $CHAIN_FW_TX $CHAIN_FW_RX; do
+		case $chain in
+		$CHAIN_FW_TX)
+			SRC_DST='-d'
+			PREFIX='tx'
+		;;
+		$CHAIN_FW_RX)
+			SRC_DST='-s'
+			PREFIX='rx'
+		;;
+		esac
 
-	$IPTABLES -t mangle -nL "${CHAIN_FW_TX}" | grep -q "${ip}" && exit 0
-	$IPTABLES -t mangle -D "${CHAIN_FW_RX}" -s "${ip}" -j RETURN -m comment --comment "rx_${host}"
-
-	printf "deleted iptmon entry for %s %s" "${ip}" "${host}"
+		if $IPTABLES -t mangle -nL $chain | grep -q "${ip}" ; then
+			$IPTABLES -t mangle -D $chain $SRC_DST "${ip}" -j RETURN -m comment --comment "${PREFIX}_${host}"		
+			printf "deleted IPv%d %s entry for %s %s\n" $FAMILY $PREFIX "${ip}" "${host}"
+		fi
+	done
 }
 
 dnsmasq_arp_del() {
@@ -161,6 +171,7 @@ dnsmasq_arp_del() {
 test "$(id -u)" -eq 0 || { echo "must be root"; exit 1; }
 trap _cleanup EXIT
 
+printf "received args: %s\n" "$*"
 case $1 in
 	"init")
 		backup_orig
