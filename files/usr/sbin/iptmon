@@ -7,6 +7,7 @@ TABLE=$(mktemp -p /tmp -u iptmon_XXXXXX)
 
 LEASE_FILE=$(uci get dhcp.@dnsmasq[0].leasefile)
 STATIC_HOSTS_FILES="/etc/hosts /tmp/hosts/*"
+ULA_PREFIX="$(uci get network.globals.ula_prefix 2>/dev/null)"
 
 CHAIN_FW_TX="iptmon_tx"
 CHAIN_FW_RX="iptmon_rx"
@@ -94,6 +95,11 @@ dnsmasq_add() {
 	host=${3:-$ip}
 	test_family $ip
 
+	# ignore link-local addresses
+	test "${ip:0:4}" == "fe80" && return 0
+	# ignore ULA address
+	test "${ip:0:4}" == "${ULA_PREFIX:0:4}" && return 0
+
 	# If the rule exists, replace it, making sure we have the most up-to-date address.
 	# Needed particularly for IPv6 as clients decide to use SLAAC addresses instead of
 	# DHCP-assigned, updating the neighbor table as addresses rotate.
@@ -126,12 +132,6 @@ dnsmasq_add() {
 dnsmasq_arp_add() {
 	mac=$1
 	ip=$2
-	# ignore link-local addresses (hacky)
-	test "${ip:0:4}" == "fe80" && exit 0
-	# ignore ULA address (hacky)
-	ula_prefix="$(uci get network.globals.ula_prefix 2>/dev/null)"
-	test "${ip:0:4}" == "${ula_prefix:0:4}" && exit 0
-
 	host=$( grep $mac $LEASE_FILE | awk '{print $4}' )
 	test "${host}x" == 'x' || dnsmasq_add $mac $ip $host
 }
