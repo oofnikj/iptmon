@@ -13,8 +13,6 @@ CHAIN_FW_RX="iptmon_rx"
 CHAIN_INPUT="iptmon_input"
 CHAIN_OUTPUT="iptmon_output"
 
-IPTABLES="/usr/sbin/iptables"
-
 usage() {
 	cat <<EOF
 
@@ -83,6 +81,7 @@ _cleanup() {
 
 test_family() {
 	FAMILY=4
+	IPTABLES="/usr/sbin/iptables"
 	if { printf "%s" $1 | grep -q ":"; } ; then
 		IPTABLES="/usr/sbin/ip6tables"
 		FAMILY=6
