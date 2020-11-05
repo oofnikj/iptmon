@@ -126,7 +126,7 @@ dnsmasq_add() {
 		$IPTABLES -t mangle -A $chain $SRC_DST $ip -j RETURN -m comment --comment "${PREFIX}_${host}"
 	done
 
-	printf "added iptmon entry for %s %s" "${ip}" "${host}"
+	printf "added iptmon entry for %s %s\n" "${ip}" "${host}"
 }
 
 dnsmasq_arp_add() {
