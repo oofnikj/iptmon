@@ -191,6 +191,7 @@ case $1 in
 		init_chain
 		finalize_chain
 		commit
+		load_static_hosts
 	;;
 	"add")
 		shift
