@@ -6,6 +6,7 @@ BACKUP_TABLE_6=/etc/iptmon_backup6.ipt
 TABLE=$(mktemp -p /tmp -u iptmon_XXXXXX)
 
 LEASE_FILE=$(uci get dhcp.@dnsmasq[0].leasefile)
+STATIC_HOSTS_FILES="/etc/hosts /tmp/hosts/*"
 
 CHAIN_FW_TX="iptmon_tx"
 CHAIN_FW_RX="iptmon_rx"
@@ -166,6 +167,19 @@ dnsmasq_arp_del() {
 	ip=$2
 	host=$( grep $mac $LEASE_FILE | awk '{print $4}' )
 	dnsmasq_del $mac $ip $host
+}
+
+load_static_hosts() {
+	local static_hosts
+	static_hosts=$(for file in $STATIC_HOSTS_FILES; do
+		grep -v '^#' $file | \
+			awk '{print "ff:ff:ff:ff:ff:ff " $1 " " $2}'
+	done)
+
+	printf "$static_hosts" | \
+		while IFS= read -r host; do
+			eval dnsmasq_add $host;
+		done
 }
 
 test "$(id -u)" -eq 0 || { echo "must be root"; exit 1; }
