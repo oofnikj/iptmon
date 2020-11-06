@@ -6,13 +6,13 @@ BACKUP_TABLE_6=/etc/iptmon_backup6.ipt
 TABLE=$(mktemp -p /tmp -u iptmon_XXXXXX)
 
 LEASE_FILE=$(uci get dhcp.@dnsmasq[0].leasefile)
+STATIC_HOSTS_FILES="/etc/hosts /tmp/hosts/*"
+ULA_PREFIX="$(uci get network.globals.ula_prefix 2>/dev/null)"
 
 CHAIN_FW_TX="iptmon_tx"
 CHAIN_FW_RX="iptmon_rx"
 CHAIN_INPUT="iptmon_input"
 CHAIN_OUTPUT="iptmon_output"
-
-IPTABLES="/usr/sbin/iptables"
 
 usage() {
 	cat <<EOF
@@ -82,6 +82,7 @@ _cleanup() {
 
 test_family() {
 	FAMILY=4
+	IPTABLES="/usr/sbin/iptables"
 	if { printf "%s" $1 | grep -q ":"; } ; then
 		IPTABLES="/usr/sbin/ip6tables"
 		FAMILY=6
@@ -93,6 +94,11 @@ dnsmasq_add() {
 	ip=$2
 	host=${3:-$ip}
 	test_family $ip
+
+	# ignore link-local addresses
+	test "${ip:0:4}" == "fe80" && return 0
+	# ignore ULA address
+	test "${ip:0:4}" == "${ULA_PREFIX:0:4}" && return 0
 
 	# If the rule exists, replace it, making sure we have the most up-to-date address.
 	# Needed particularly for IPv6 as clients decide to use SLAAC addresses instead of
@@ -120,18 +126,12 @@ dnsmasq_add() {
 		$IPTABLES -t mangle -A $chain $SRC_DST $ip -j RETURN -m comment --comment "${PREFIX}_${host}"
 	done
 
-	printf "added iptmon entry for %s %s" "${ip}" "${host}"
+	printf "added iptmon entry for %s %s\n" "${ip}" "${host}"
 }
 
 dnsmasq_arp_add() {
 	mac=$1
 	ip=$2
-	# ignore link-local addresses (hacky)
-	test "${ip:0:4}" == "fe80" && exit 0
-	# ignore ULA address (hacky)
-	ula_prefix="$(uci get network.globals.ula_prefix 2>/dev/null)"
-	test "${ip:0:4}" == "${ula_prefix:0:4}" && exit 0
-
 	host=$( grep $mac $LEASE_FILE | awk '{print $4}' )
 	test "${host}x" == 'x' || dnsmasq_add $mac $ip $host
 }
@@ -168,6 +168,19 @@ dnsmasq_arp_del() {
 	dnsmasq_del $mac $ip $host
 }
 
+load_static_hosts() {
+	local static_hosts
+	static_hosts=$(for file in $STATIC_HOSTS_FILES; do
+		grep -v '^#' $file | \
+			awk '{print "ff:ff:ff:ff:ff:ff " $1 " " $2}'
+	done)
+
+	printf "$static_hosts" | \
+		while IFS= read -r host; do
+			eval dnsmasq_add $host;
+		done
+}
+
 test "$(id -u)" -eq 0 || { echo "must be root"; exit 1; }
 trap _cleanup EXIT
 
@@ -178,6 +191,7 @@ case $1 in
 		init_chain
 		finalize_chain
 		commit
+		load_static_hosts
 	;;
 	"add")
 		shift
