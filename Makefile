@@ -1,14 +1,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iptmon
-PKG_VERSION:=0.0.5
+PKG_VERSION:=0.1.0
 PKG_RELEASE:=1
 PKG_MAINTAINER:=Jordan Sokolic <oofnik@gmail.com>
 
 PKG_SOURCE_PROTO=git
 PKG_SOURCE_URL:=https://github.com/oofnikj/iptmon
-PKG_SOURCE_DATE:=2020-04-28
-PKG_SOURCE_VERSION:=v0.0.5
+PKG_SOURCE_DATE:=2020-11-06
+PKG_SOURCE_VERSION:=v0.1.0
 
 
 include $(INCLUDE_DIR)/package.mk
