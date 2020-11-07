@@ -171,7 +171,7 @@ dnsmasq_arp_del() {
 load_static_hosts() {
 	local static_hosts
 	static_hosts=$(for file in $STATIC_HOSTS_FILES; do
-		grep -v '^#' $file | \
+		grep -v '^\s*$\|^\s*\#' $file | \
 			awk '{print "ff:ff:ff:ff:ff:ff " $1 " " $2}'
 	done)
 

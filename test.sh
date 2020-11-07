@@ -86,6 +86,7 @@ main() {
 		. /root/iptmon/test.sh
 		_set_network
 		sleep 3
+		echo "# a comment" >> /etc/hosts
 		_install_iptmon'
 }
 
