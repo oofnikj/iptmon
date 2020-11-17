@@ -87,6 +87,7 @@ main() {
 		_set_network
 		sleep 3
 		echo "# a comment" >> /etc/hosts
+		echo "1.2.3.4 a-static-host" >> /etc/hosts
 		_install_iptmon'
 }
 
