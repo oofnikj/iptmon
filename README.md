@@ -28,13 +28,19 @@ If you are using `luci-app-statistics` prior to git commit [`4778aa6`](https://g
 
 **Note** that if you have software offloading enabled `iptmon` **will not** be able to track bandwidth usage properly.
 
-## Installation on OpenWRT
+## Installation on OpenWrt
 
 Head over to the [releases](https://github.com/oofnikj/iptmon/releases) page to downloaded the latest `.ipk`.
 
 `iptmon` is a shell script, so it should work on all architectures.
 
-After downloading, install with `opkg install ./iptmon_$VERSION_all.ipk`.
+```
+# VERSION=0.1.3
+# wget https://github.com/oofnikj/iptmon/releases/download/v${VERSION}/iptmon_${VERSION}-1_all.ipk -O iptmon_${VERSION}-1_all.ipk
+# opkg install ./iptmon_${VERSION}-1_all.ipk
+```
 
 ## Removal
-To uninstall, run `opkg remove iptmon`.
+```
+# opkg remove iptmon
+```
