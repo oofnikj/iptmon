@@ -90,9 +90,16 @@ test_family() {
 }
 
 reverse_lookup() {
-	local ip
-	ip=$1
-	nslookup ${ip} | grep 'name = ' | sed -E 's/^.*name = ([a-zA-Z0-9-]+).*$/\1/'
+	local mac ip host
+	mac=$1
+	ip=$2
+
+	# first check lease file, then try reverse lookup
+	host=$( grep ${mac} ${LEASE_FILE} | awk '{print $4}' )
+	if [[ "${host}x" = "x" ]] ; then
+		host=$(nslookup ${ip} | grep 'name = ' | sed -E 's/^.*name = ([a-zA-Z0-9-]+).*$/\1/')
+	fi
+	printf "%s" ${host}
 }
 
 dnsmasq_add() {
@@ -138,8 +145,8 @@ dnsmasq_add() {
 dnsmasq_arp_add() {
 	mac=$1
 	ip=$2
-	host=$( reverse_lookup ${ip} )
-	test "${host}x" == 'x' || dnsmasq_add $mac $ip $host
+	host=$( reverse_lookup ${mac} ${ip} )
+	test "${host}x" = 'x' || dnsmasq_add $mac $ip $host
 }
 
 dnsmasq_del() {
@@ -170,7 +177,7 @@ dnsmasq_del() {
 dnsmasq_arp_del() {
 	mac=$1
 	ip=$2
-	host=$( reverse_lookup ${ip} )
+	host=$( reverse_lookup ${mac} ${ip} )
 	dnsmasq_del $mac $ip $host
 }
 
