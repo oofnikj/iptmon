@@ -230,6 +230,9 @@ case $1 in
 		shift
 		dnsmasq_arp_del "$@"
 	;;
+	"reload-hosts")
+		load_static_hosts
+	;;
 	"flush")
 		for chain in $CHAIN_FW_TX $CHAIN_FW_RX; do
 			for cmd in iptables ip6tables; do
