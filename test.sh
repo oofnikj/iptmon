@@ -19,7 +19,7 @@ IP6_CIDR=fc22::/64
 
 run_openwrt() {
 	docker network create iptmon-net --subnet $IP4_CIDR --ipv6 --subnet $IP6_CIDR
-	OPENWRT=$(docker run --rm -it -d -v `pwd`:/root/iptmon:ro \
+	OPENWRT=$(docker run --rm -d -v `pwd`:/root/iptmon:ro \
 		--ip $IP4_ADDR \
 		--ip6 $IP6_ADDR \
 		-p 8080:80 \
