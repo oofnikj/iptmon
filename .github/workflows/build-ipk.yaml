@@ -1,0 +1,20 @@
+name: build-ipk
+on:
+  push:
+    tags:
+      - v*
+jobs:
+  package:
+    name: Package release
+    runs-on: ubuntu-latest
+    container:
+      image: openwrtorg/sdk:x86-64-snapshot
+    steps:
+      - uses: actions/checkout@v2
+      - name: build
+        run: |
+          echo src-link iptmon $GITHUB_WORKSPACE > feeds.conf
+          scripts/feeds update
+          scripts/feeds install iptmon
+          make defconfig
+          make package/iptmon/compile V=s
