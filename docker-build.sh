@@ -10,7 +10,7 @@ set -x
 run_sdk() {
 	mkdir -p build
 	chmod a+rwx build
-	docker run --rm -it \
+	docker run --rm \
 		-v $(pwd)/build:/home/build/openwrt/bin \
 		-v $(pwd):/home/build/iptmon \
 		openwrtorg/sdk /home/build/iptmon/$0 build_ipk

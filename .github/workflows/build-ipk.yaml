@@ -12,4 +12,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: build
-        run: bash docker-build.sh
+        run: ./docker-build.sh
