@@ -10,7 +10,7 @@ set -x
 # 4. check for presence of iptmon rules          #
 ##                                              ##
 
-TAG=x86-64-19.07.4
+TAG=x86-64-19.07.5
 IP4_ADDR=172.22.0.22
 IP4_GW=172.22.0.1
 IP4_CIDR=172.22.0.0/24
@@ -24,47 +24,49 @@ run_openwrt() {
 		--ip6 $IP6_ADDR \
 		-p 8080:80 \
 		--name test_iptmon \
+		--hostname openwrt \
 		--network iptmon-net \
 		--cap-add net_admin \
-		--sysctl net.ipv6.conf.all.forwarding=1 \
 		--sysctl net.ipv6.conf.all.disable_ipv6=0 \
 		openwrtorg/rootfs:$TAG)
 }
 
 _set_network() {
 	cat <<-EOF | uci batch
-	set network.lan=interface
-	set network.lan.ifname=eth0
-	set network.lan.proto=static
-	set network.lan.ipaddr=${IP4_ADDR}/24
-	set network.lan.ip6addr=${IP6_ADDR}/64
-	set network.default=route
-	set network.default.interface=lan
-	set network.default.target=0.0.0.0
-	set network.default.netmask=0.0.0.0
-	set network.default.gateway=$IP4_GW
-	commit
+		del network.wan
+		del network.wan6
+		set network.lan=interface
+		set network.lan.ifname=eth0
+		set network.lan.proto=static
+		set network.lan.ipaddr=${IP4_ADDR}/24
+		set network.lan.ip6addr=${IP6_ADDR}/64
+		set network.default=route
+		set network.default.interface=lan
+		set network.default.target=0.0.0.0
+		set network.default.netmask=0.0.0.0
+		set network.default.gateway=$IP4_GW
+		add_list dhcp.@dnsmasq[0].server=208.67.222.222
+		commit
 	EOF
 	/etc/init.d/network restart
 }
 
 _install_iptmon() {
-	opkg update
+	until opkg update ; do sleep 1; done
 	opkg install dnsmasq \
 		luci-app-statistics \
 		collectd-mod-iptables \
 		/root/iptmon/build/packages/x86_64/iptmon/iptmon*.ipk
 }
 
-launch_busybox() {
-	docker run --rm -it -d \
+run_busybox() {
+	docker run --rm -d \
 	--network iptmon-net \
 	--name busybox \
 	busybox sh -c "
-		udhcpc -x hostname:abcdef
-		udhcpc6
-		ping $IP6_ADDR
-	"
+		udhcpc -x hostname:dhcp-host
+		ping $IP4_ADDR &
+		ping $IP6_ADDR"
 }
 
 restart_dnsmasq() {
@@ -74,21 +76,35 @@ restart_dnsmasq() {
 
 check_iptables() {
 	docker exec -it $OPENWRT sh -c '
-		iptables -t mangle -nvL iptmon_rx
-		iptables -t mangle -nvL iptmon_tx
-		ip6tables -t mangle -nvL iptmon_rx
-		ip6tables -t mangle -nvL iptmon_tx
+		i=1
+		interval=5
+		tries=3
+		while [[ $i -le $tries ]]; do
+			echo "############################# $i/$tries"
+			for IPTABLES in iptables ip6tables; do
+				$IPTABLES -t mangle -nvL iptmon_rx
+				$IPTABLES -t mangle -nvL iptmon_tx
+			done
+			let i+=1
+			if [[ $i -gt $tries ]]; then break; fi
+			sleep $interval
+		done
 	'
 }
 
 main() {
+	run_openwrt
 	docker exec -it $OPENWRT sh -c '
 		. /root/iptmon/test.sh
 		_set_network
-		sleep 3
-		echo "# a comment" >> /etc/hosts
-		echo "1.2.3.4 a-static-host" >> /etc/hosts
+		echo -e "# a comment and some newlines\n\n" >> /etc/hosts
+		echo "1.2.3.4 static-host" >> /etc/hosts
 		_install_iptmon'
+
+	run_busybox
+	sleep 5
+	restart_dnsmasq
+	check_iptables
 }
 
 cleanup() {
@@ -98,15 +114,7 @@ cleanup() {
 
 case $1 in
 run)
-	run_openwrt
+	trap cleanup EXIT
 	main
-	launch_busybox
-	sleep 5
-	restart_dnsmasq
-	sleep 5
-	check_iptables
-;;
-cleanup)
-	cleanup
 ;;
 esac
