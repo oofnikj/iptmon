@@ -28,6 +28,14 @@ If you are using `luci-app-statistics` prior to git commit [`4778aa6`](https://g
 
 **Note** that if you have software offloading enabled `iptmon` **will not** be able to track bandwidth usage properly.
 
+## Add feed
+
+If you are building your own image from source and want to include `iptmon`:
+
+    $ echo "src-git iptmon https://github.com/oofnikj/iptmon.git" >> feeds.conf
+    $ scripts/feeds update && scripts/feeds install iptmon
+    $ make menuconfig
+
 ## Installation on OpenWrt
 
 Head over to the [releases](https://github.com/oofnikj/iptmon/releases) page to downloaded the latest `.ipk`.

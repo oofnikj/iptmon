@@ -5,11 +5,6 @@ PKG_VERSION:=0.1.4
 PKG_RELEASE:=1
 PKG_MAINTAINER:=Jordan Sokolic <oofnik@gmail.com>
 
-PKG_SOURCE_PROTO=git
-PKG_SOURCE_URL:=https://github.com/oofnikj/iptmon
-PKG_SOURCE_DATE:=2020-12-23
-PKG_SOURCE_VERSION:=v${PKG_VERSION}
-
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -38,9 +33,9 @@ endef
 
 define Package/iptmon/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/usr/sbin/iptmon $(1)/usr/sbin/iptmon
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/usr/sbin/iptmon $(1)/usr/sbin/iptmon
 	$(INSTALL_DIR) $(1)/etc/collectd/conf.d
-	$(INSTALL_CONF) $(PKG_BUILD_DIR)/files/etc/collectd/conf.d/iptables.conf $(1)/etc/collectd/conf.d/iptables.conf
+	$(INSTALL_CONF) $(PKG_BUILD_DIR)/etc/collectd/conf.d/iptables.conf $(1)/etc/collectd/conf.d/iptables.conf
 endef
 
 define Package/iptmon/postinst
@@ -70,7 +65,4 @@ define Package/iptmon/postrm
 	rm -rf /tmp/luci-modulecache/
 endef
 
-	
-
-# This command is always the last, it uses the definitions and variables we give above in order to get the job done
 $(eval $(call BuildPackage,iptmon))
