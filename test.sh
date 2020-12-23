@@ -70,12 +70,12 @@ run_busybox() {
 }
 
 restart_dnsmasq() {
-	docker exec -it $OPENWRT sh -c '
+	docker exec $OPENWRT sh -c '
 		/etc/init.d/dnsmasq restart'
 }
 
 check_iptables() {
-	docker exec -it $OPENWRT sh -c '
+	docker exec $OPENWRT sh -c '
 		i=1
 		interval=5
 		tries=3
@@ -94,7 +94,7 @@ check_iptables() {
 
 main() {
 	run_openwrt
-	docker exec -it $OPENWRT sh -c '
+	docker exec $OPENWRT sh -c '
 		. /root/iptmon/test.sh
 		_set_network
 		echo -e "# a comment and some newlines\n\n" >> /etc/hosts
