@@ -70,7 +70,4 @@ define Package/iptmon/postrm
 	rm -rf /tmp/luci-modulecache/
 endef
 
-	
-
-# This command is always the last, it uses the definitions and variables we give above in order to get the job done
 $(eval $(call BuildPackage,iptmon))
