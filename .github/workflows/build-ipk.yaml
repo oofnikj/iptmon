@@ -9,5 +9,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: build
-        run: ./docker-build.sh
+      - id: build_package
+        run: |
+          ./docker-build.sh
+          asset_path=$(find -name iptmon*.ipk)
+          asset_name=$(basename $asset_path)
+          echo ::set-output name=asset_path::$asset_path
+          echo ::set-output name=asset_name::$asset_name
+      - id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.build_package.outputs.asset_path }}
+          asset_name: ${{ steps.build_package.outputs.asset_name }}
+          asset_content_type: application/gzip
