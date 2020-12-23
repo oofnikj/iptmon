@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 ##                                                                ##
 # Usage: ./docker-build.sh                                         #

@@ -12,6 +12,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: build
-        run: |
-          ls -lah
-          pwd
+        run: bash docker-build.sh
