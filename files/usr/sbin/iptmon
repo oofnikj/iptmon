@@ -26,6 +26,9 @@ $0 [ add | old | del | arp-add | arp-old | arp-del ]
 $0 flush
 	flush all iptmon chain entries
 
+$0 reload-hosts
+	reload static host entries
+
 $0 remove
 	remove iptmon chains and restore original mangle table
 EOF
