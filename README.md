@@ -35,7 +35,7 @@ Head over to the [releases](https://github.com/oofnikj/iptmon/releases) page to 
 `iptmon` is a shell script, so it should work on all architectures.
 
 ```
-# VERSION=0.1.3
+# VERSION=0.1.4
 # wget https://github.com/oofnikj/iptmon/releases/download/v${VERSION}/iptmon_${VERSION}-1_all.ipk -O iptmon_${VERSION}-1_all.ipk
 # opkg install ./iptmon_${VERSION}-1_all.ipk
 ```
