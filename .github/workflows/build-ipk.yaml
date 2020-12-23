@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - v*
+    branches:
+      - github_actions
 jobs:
   package:
     name: Package release
