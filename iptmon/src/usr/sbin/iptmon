@@ -85,10 +85,12 @@ _cleanup() {
 
 test_family() {
 	FAMILY=4
+	BITS=32
 	IPTABLES="/usr/sbin/iptables"
 	if { printf "%s" $1 | grep -q ":"; } ; then
 		IPTABLES="/usr/sbin/ip6tables"
 		FAMILY=6
+		BITS=128
 	fi
 }
 
@@ -133,7 +135,7 @@ dnsmasq_add() {
 		# check if the rule has already been added by hostname or by ip
 		# and delete the associated rule(s)
 		EXISTING=$(${IPTABLES}-save -t mangle | grep "iptmon_${PREFIX}" | \
-			grep -e "${host}" -e "${ip}\/32" | sed 's/-A/-D/') 
+			grep -e "${host}" -e "${ip}\/${BITS}" | sed 's/-A/-D/') 
 		if [[ -n "${EXISTING}" ]] ; then
 			printf 'removing existing IPv%d %s rule for %s\n' $FAMILY $PREFIX "${host}"
 			OLD_IFS=${IFS}
