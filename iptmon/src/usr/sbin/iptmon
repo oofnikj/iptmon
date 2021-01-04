@@ -132,7 +132,8 @@ dnsmasq_add() {
 		esac
 		# check if the rule has already been added by hostname or by ip
 		# and delete the associated rule(s)
-		EXISTING=$(${IPTABLES}-save -t mangle | grep "iptmon_${PREFIX}" | grep -e "${host}" -e "${ip}" | sed 's/-A/-D/') 
+		EXISTING=$(${IPTABLES}-save -t mangle | grep "iptmon_${PREFIX}" | \
+			grep -e "${host}" -e "${ip}\/32" | sed 's/-A/-D/') 
 		if [[ -n "${EXISTING}" ]] ; then
 			printf 'removing existing IPv%d %s rule for %s\n' $FAMILY $PREFIX "${host}"
 			OLD_IFS=${IFS}
