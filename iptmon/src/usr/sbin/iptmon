@@ -104,6 +104,9 @@ reverse_lookup() {
 	if [[ "${host}x" = "x" ]] ; then
 		host=$(nslookup ${ip} | grep 'name = ' | sed -E 's/^.*name = ([a-zA-Z0-9-]+).*$/\1/')
 	fi
+	if [[ "${host}" = "\*" ]] ; then
+		host=${ip}
+	fi
 	printf "%s" ${host}
 }
 
@@ -142,7 +145,7 @@ dnsmasq_add() {
 			IFS=$'\n'; for rule in $EXISTING; do eval "$IPTABLES -t mangle $rule"; done
 			IFS=$OLD_IFS
 		fi
-		$IPTABLES -t mangle -A $chain $SRC_DST $ip -j RETURN -m comment --comment "${PREFIX}_${host}"
+		$IPTABLES -t mangle -A $chain $SRC_DST $ip -j RETURN -m comment --comment "${host}"
 	done
 
 	printf "added iptmon entry for %s %s\n" "${ip}" "${host}"
@@ -174,7 +177,7 @@ dnsmasq_del() {
 		esac
 
 		if $IPTABLES -t mangle -nL $chain | grep -q "${ip}" ; then
-			$IPTABLES -t mangle -D $chain $SRC_DST "${ip}" -j RETURN -m comment --comment "${PREFIX}_${host}"		
+			$IPTABLES -t mangle -D $chain $SRC_DST "${ip}" -j RETURN -m comment --comment "${host}"	
 			printf "deleted IPv%d %s entry for %s %s\n" $FAMILY $PREFIX "${ip}" "${host}"
 		fi
 	done
