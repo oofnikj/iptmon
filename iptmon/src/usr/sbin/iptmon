@@ -104,7 +104,7 @@ reverse_lookup() {
 	if [[ "${host}x" = "x" ]] ; then
 		host=$(nslookup ${ip} | grep 'name = ' | sed -E 's/^.*name = ([a-zA-Z0-9-]+).*$/\1/')
 	fi
-	if [[ "${host}" = "*" ]] ; then
+	if [[ "${host}" = "\*" ]] ; then
 		host=${ip}
 	fi
 	printf "%s" ${host}
